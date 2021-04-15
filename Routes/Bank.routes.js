@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const fs = require('fs');
 
 const bankUsersJson = require("./../Bank.json");
 const { users } = bankUsersJson;
@@ -13,7 +14,20 @@ router.post("/", (req, res) => {
 });
 
 //Depositing
+router.put("/:id", (req, res) => {
+    const { id } = req.params;
+    const { amount } = req.body;
+    const user = users.find((user) => user.id === id);
+    if (user) {
+        if (amount > 0) {
+            user.cash += amount;
+            return res.status(200).json("Success")
+        }
+        return res.status(200).json({ error: "Check your amount again- cannot be a negative number or proide value" })
 
+    }
+    return res.status(200).json({ error: "Sorry, user not found " })
+});
 
 //Update credit
 
@@ -27,7 +41,8 @@ router.get("/", (req, res) => {
 router.get("/:id", (req, res) => {
     const { id } = req.params;
     const user = users.find((user) => user.id === id);
-    if(user) return res.status(200).json({ user });
-    return res.status(200).json({ error: 'Sorry, user not found' })});
+    if (user) return res.status(200).json({ user });
+    return res.status(200).json({ error: 'Sorry, user not found' })
+});
 
 module.exports = router;
