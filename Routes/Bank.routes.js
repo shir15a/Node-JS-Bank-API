@@ -13,13 +13,7 @@ router.post("/", (req, res) => {
 });
 
 //Depositing
-router.put("/:id", (req, res) => {
-    const {id} = req.params;
-    const {amount} = req.body;
-    const user = users.find((user) => user.id === id);
-    user.cash += amount;
-    res.status(200).send("success");
-});
+
 
 //Update credit
 
