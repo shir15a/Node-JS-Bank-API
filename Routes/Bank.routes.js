@@ -32,6 +32,12 @@ router.put("/:id", (req, res) => {
 //Update credit
 
 
+//Withdraw money
+
+
+//Transferring 
+
+
 // Show details of all users
 router.get("/", (req, res) => {
     return res.status(200).json({ users });
