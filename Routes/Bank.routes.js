@@ -7,6 +7,11 @@ router
 .get("/", bankController.getAllUsers)
 .get("/:id", bankController.getUserById)
 .post("/", bankController.addUser)
-.put("/:id",bankController.deposit)
+.put("/depositing/:id",bankController.deposit)
+.put("/update/:id",bankController.updateCredit)
+.put("/withdrawMoney/:id",bankController.withdrawMoney)
+.put("/transferMoney/:id",bankController.transferMoney)
+
+
 
 module.exports = router;
