@@ -21,6 +21,7 @@ const getUserById = (req, res) => {
 const addUser = (req, res) => {
     // const id = req.body.id;
     const { id } = req.body;
+    // console.log(String(req.body.id).length);
     // const { cash = 0, credit = 0 } = req.body;
     users.push({ id, cash: 0, credit: 0 });
     const jsonData = JSON.stringify(bankJson);
@@ -91,6 +92,23 @@ const withdrawMoney = (req, res) => {
 
 //Transferring
 const transferMoney = (req, res) => {
+    const { fromUserId, toUserId, amount } = req.body;
+    const fromUser = users.find((user) => user.id === parseInt(fromUserId));
+    console.log(fromUser);
+    const toUser = users.find((user) => user.id === parseInt(toUserId));
+    if (!fromUser || !toUser || amount < 0) {
+        return res.status(200).json({ error: 'Sorry, check your users or amount again' })
+    }
+    else if (fromUser.cash + fromUser.credit < amount) {
+        return res.status(200).json({ error: 'your cash & credit isnt enough for this transfer' })
+    }
+    else {
+        fromUser.cash -= amount;
+        toUser.cash += amount;
+        const jsonData = JSON.stringify(bankJson);
+        fs.writeFileSync("Json/Bank.json", jsonData);
+        return res.status(200).json("Success")
+    }
 };
 
 
