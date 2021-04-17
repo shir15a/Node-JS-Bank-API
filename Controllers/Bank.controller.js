@@ -18,13 +18,13 @@ const getUserById = (req, res) => {
 // Add user
 const addUser = (req, res) => {
     const { id } = req.body;
-    if (!checkifUserExist(id)) {
+    if (!checkifNewUserIsValid(id).error) {
         users.push({ id, cash: 0, credit: 0, isActive: true });
         const jsonData = JSON.stringify(bankJson);
         fs.writeFileSync("Json/Bank.json", jsonData);
         return res.status(200).json({ success: "user add to db" });
     }
-    return res.status(200).json({ error: "this id is already exist in db" });
+    return res.status(200).json({ error: checkifNewUserIsValid(id).error });
 };
 
 //Depositing
@@ -33,13 +33,13 @@ const deposit = (req, res) => {
     const { amount } = req.body;
     const user = users.find((user) => user.id === parseInt(id));
     if (checkifUserExist(id)) {
-        if (!checkAmount(amount).error && user.isActive) {
+        if (!checkIdAndAmount(id, amount).error && user.isActive) {
             user.cash += amount;
             const jsonData = JSON.stringify(bankJson);
             fs.writeFileSync("Json/Bank.json", jsonData);
             return res.status(200).json("Success")
         }
-        return res.json({ error: checkAmount(amount).error })
+        return res.json({ error: checkIdAndAmount(id, amount).error })
     }
     return res.status(200).json({ error: "Sorry, user not found or not active" })
 };
@@ -50,13 +50,13 @@ const updateCredit = (req, res) => {
     const { amount } = req.body;
     const user = users.find((user) => user.id === parseInt(id));
     if (checkifUserExist(id)) {
-        if (!checkAmount(amount).error) {
+        if (!checkIdAndAmount(id, amount).error) {
             user.credit += amount;
             const jsonData = JSON.stringify(bankJson);
             fs.writeFileSync("Json/Bank.json", jsonData);
             return res.status(200).json("Success")
         }
-        return res.json({ error: checkAmount(amount).error })
+        return res.json({ error: checkIdAndAmount(id, amount).error })
     }
     return res.status(200).json({ error: "Sorry, user not found or not active" })
 };
@@ -66,10 +66,9 @@ const withdrawMoney = (req, res) => {
     const { id } = req.params;
     const { amount } = req.body;
     const user = users.find((user) => user.id === parseInt(id));
-    console.log(user);
     if (checkifUserExist(id)) {
-        if (!checkAmount(amount).error) {
-            if (checkWithdraw(id, amount)) {
+        if (!checkIdAndAmount(id, amount).error) {
+            if (!checkWithdraw(id, amount)) {
                 return res.status(200).json({ error: "Check your amount again" })
             }
             else {
@@ -79,16 +78,16 @@ const withdrawMoney = (req, res) => {
                 return res.status(200).json("Success")
             }
         }
-        return res.json({ error: checkAmount(amount).error })
+        return res.json({ error: checkIdAndAmount(id, amount).error })
     }
     return res.status(200).json({ error: "Sorry, user not found or not active" })
 };
+
 
 //Transferring
 const transferMoney = (req, res) => {
     const { fromUserId, toUserId, amount } = req.body;
     const fromUser = users.find((user) => user.id === parseInt(fromUserId));
-    console.log(fromUser);
     const toUser = users.find((user) => user.id === parseInt(toUserId));
     if (!fromUser || !toUser || amount < 0 || fromUserId === toUserId || !fromUser.isActive || !toUser.isActive) {
         return res.status(200).json({ error: 'Sorry, check your users or amount again' })
@@ -125,9 +124,22 @@ const checkifUserExist = (id) => {
     return false;
 }
 
-const checkAmount = (amount) => {
-    if (!amount) return { error: "please put amount" };
+const checkifNewUserIsValid = (id) => {
+    const user = users.find((user) => user.id === parseInt(id));
+    if (!id) return { error: "Please provide id" };
+    else if (!isIsraeliIdNumber(id)) return { error: "Invalid Israeli id" };
+    else if (user) return { error: "ID already exists in db" };
+    return { error: false };
+}
+
+const checkIdAndAmount = (id, amount) => {
+    // if (!amount) return { error: "please put amount" };
+    // else if (amount < 0) return { error: "amount should be a positive number" };
+    // return { error: false };
+    const user = users.find((user) => user.id === parseInt(id));
+    if (!amount || !id) return { error: "please put amount && id" };
     else if (amount < 0) return { error: "amount should be a positive number" };
+    else if (!isIsraeliIdNumber(id)) return { error: "Invalid Israeli Id" };
     return { error: false };
 }
 
@@ -135,6 +147,16 @@ const checkWithdraw = (id, amount) => {
     const user = users.find((user) => user.id === parseInt(id));
     if (user.cash + user.credit < amount) return false;
     return true;
+}
+
+const isIsraeliIdNumber = (id) => {
+    id = String(id).trim();
+    if (id.length > 9 || isNaN(id)) return false;
+    id = id.length < 9 ? ("00000000" + id).slice(-9) : id;
+    return Array.from(id, Number).reduce((counter, digit, i) => {
+        const step = digit * ((i % 2) + 1);
+        return counter + (step > 9 ? step - 9 : step);
+    }) % 10 === 0;
 }
 
 
