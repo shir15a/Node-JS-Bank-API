@@ -19,12 +19,12 @@ const getUserById = (req, res) => {
 const addUser = (req, res) => {
     const { id } = req.body;
     if (!checkifUserExist(id)) {
-        users.push({ id, cash: 0, credit: 0 });
+        users.push({ id, cash: 0, credit: 0, isActive: true });
         const jsonData = JSON.stringify(bankJson);
         fs.writeFileSync("Json/Bank.json", jsonData);
         return res.status(200).json({ success: "user add to db" });
     }
-    return res.status(200).json({ error: "this id is alreade exist in db" });
+    return res.status(200).json({ error: "this id is already exist in db or" });
 };
 
 //Depositing
@@ -33,7 +33,7 @@ const deposit = (req, res) => {
     const { amount } = req.body;
     const user = users.find((user) => user.id === parseInt(id));
     if (checkifUserExist(id)) {
-        if (!checkAmount(amount).error) {
+        if (!checkAmount(amount).error && user.isActive) {
             user.cash += amount;
             const jsonData = JSON.stringify(bankJson);
             fs.writeFileSync("Json/Bank.json", jsonData);
@@ -41,7 +41,7 @@ const deposit = (req, res) => {
         }
         return res.json({ error: checkAmount(amount).error })
     }
-    return res.status(200).json({ error: "Sorry, user not found" })
+    return res.status(200).json({ error: "Sorry, user not found or not active" })
 };
 
 //Update credit
@@ -58,7 +58,7 @@ const updateCredit = (req, res) => {
         }
         return res.json({ error: checkAmount(amount).error })
     }
-    return res.status(200).json({ error: "Sorry, user not found " })
+    return res.status(200).json({ error: "Sorry, user not found or not active" })
 };
 
 //Withdraw money
@@ -81,7 +81,7 @@ const withdrawMoney = (req, res) => {
         }
         return res.json({ error: checkAmount(amount).error })
     }
-    return res.status(200).json({ error: "Sorry, user not found " })
+    return res.status(200).json({ error: "Sorry, user not found or not active" })
 };
 
 //Transferring
@@ -90,7 +90,7 @@ const transferMoney = (req, res) => {
     const fromUser = users.find((user) => user.id === parseInt(fromUserId));
     console.log(fromUser);
     const toUser = users.find((user) => user.id === parseInt(toUserId));
-    if (!fromUser || !toUser || amount < 0 || fromUserId === toUserId) {
+    if (!fromUser || !toUser || amount < 0 || fromUserId === toUserId || !fromUser.isActive || !toUser.isActive) {
         return res.status(200).json({ error: 'Sorry, check your users or amount again' })
     }
     else if (!checkWithdraw(fromUserId, amount)) {
@@ -105,19 +105,33 @@ const transferMoney = (req, res) => {
     }
 };
 
+// Sort by amount of cash - Hero 1 
+const sortByAmountOfCash = (req, res) => {
+    users.sort((a, b) => a.cash - b.cash);
+    return res.status(200).json({ users });
+}
+
+// Users that are active and have a specified amount of cash - Ninja 2
+const activeUserAndSpecifiedAmount = (req, res) => {
+    const { amount } = req.params;
+    const activeUserWithSpecifiedAmount = users.filter((user) => user.isActive && user.cash >= parseInt(amount))
+    return res.status(200).json({ activeUserWithSpecifiedAmount });
+}
+
+// Validations
 const checkifUserExist = (id) => {
     const user = users.find((user) => user.id === parseInt(id));
-    if (user) return true;
+    if (user && user.isActive) return true;
     return false;
 }
 
-const checkAmount = (amount)=>{
-    if(!amount) return { error: "please put amount" };
-    else if (amount < 0) return{ error: "amount should be a positive number" };
+const checkAmount = (amount) => {
+    if (!amount) return { error: "please put amount" };
+    else if (amount < 0) return { error: "amount should be a positive number" };
     return { error: false };
 }
 
-const checkWithdraw = (id, amount) =>{
+const checkWithdraw = (id, amount) => {
     const user = users.find((user) => user.id === parseInt(id));
     if (user.cash + user.credit < amount) return false;
     return true;
@@ -131,5 +145,7 @@ module.exports = {
     deposit,
     updateCredit,
     withdrawMoney,
-    transferMoney
+    transferMoney,
+    sortByAmountOfCash,
+    activeUserAndSpecifiedAmount
 };
