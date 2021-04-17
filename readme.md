@@ -10,7 +10,7 @@
     * routes
 
 
-*  Include: 
+*  Including: 
     * Add user
     * Depositing
     * Update credit
