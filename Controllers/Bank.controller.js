@@ -24,7 +24,7 @@ const addUser = (req, res) => {
         fs.writeFileSync("Json/Bank.json", jsonData);
         return res.status(200).json({ success: "user add to db" });
     }
-    return res.status(200).json({ error: "this id is already exist in db or" });
+    return res.status(200).json({ error: "this id is already exist in db" });
 };
 
 //Depositing
