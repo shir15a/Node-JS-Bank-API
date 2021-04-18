@@ -13,6 +13,6 @@ app.use(cors())
 app.use("/api/bankApi", bankRoute);
 
 
-app.listen(process.env.PORT || port, () => {
-  console.log(`appleication start at ${port}`);
+app.listen(process.env.PORT || 5000, () => {
+  console.log(`appleication start at 5000`);
 });
