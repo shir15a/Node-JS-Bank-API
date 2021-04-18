@@ -2,7 +2,7 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const cors = require('cors')
 
-const bankRoute = require("./routes/Bank.routes");
+const bankRoute = require("./Routes/Bank.routes");
 
 const app = express();
 const port = 5000;
