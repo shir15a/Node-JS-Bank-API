@@ -5,7 +5,7 @@ var cors = require('cors')
 const bankRoute = require("./routes/Bank.routes");
 
 const app = express();
-const port = 8000;
+const port = 5000;
 
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
